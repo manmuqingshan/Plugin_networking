@@ -382,22 +382,18 @@ static err_t telnet_sent (void *arg, struct tcp_pcb *pcb, u16_t ui16len)
     return ERR_OK;
 }
 
-static bool is_connected (void)
-{
-    return true;
-}
-
 static err_t telnet_accept (void *arg, struct tcp_pcb *pcb, err_t err)
 {
     PROGMEM static const io_stream_t telnet_stream = {
         .type = StreamType_Telnet,
-        .is_connected = is_connected,
+        .is_connected = stream_connected,
         .read = streamGetC,
         .write = streamWriteS,
         .write_n = streamWrite,
         .write_char = streamPutC,
         .enqueue_rt_command = streamEnqueueRtCommand,
         .get_rx_buffer_free = streamRxFree,
+        .get_tx_buffer_count = streamTxCount,
         .reset_write_buffer = streamTxFlush,
         .reset_read_buffer = streamRxFlush,
         .cancel_read_buffer = streamRxCancel,
@@ -405,7 +401,7 @@ static err_t telnet_accept (void *arg, struct tcp_pcb *pcb, err_t err)
         .set_enqueue_rt_handler = streamSetRtHandler
     };
 
-    if ((err != ERR_OK) || (pcb == NULL))
+    if((err != ERR_OK) || (pcb == NULL))
         return ERR_VAL;
 
     sessiondata_t *session = arg;

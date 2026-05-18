@@ -441,6 +441,7 @@ static const io_stream_t *claim_stream (uint32_t baud_rate)
         .write_char = streamPutC,
         .enqueue_rt_command = streamEnqueueRtCommand,
         .get_rx_buffer_free = streamRxFree,
+        .get_tx_buffer_count = streamTxCount,
         .reset_write_buffer = streamTxFlush,
         .reset_read_buffer = streamRxFlush,
         .cancel_read_buffer = websocketd_RxCancel,
