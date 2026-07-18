@@ -1,12 +1,12 @@
 //
 // fs_stream.c - output stream redirector (to in-memory file)
 //
-// v0.1 / 2022-08-29 / Io Engineering / Terje
+// v0.2 / 2026-07-17 / Io Engineering / Terje
 //
 
 /*
 
-Copyright (c) 2022, Terje Io
+Copyright (c) 2022-2026, Terje Io
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -287,6 +287,6 @@ void fs_stream_mount (void)
     if(driver_reset == NULL) {
         driver_reset = hal.driver_reset;
         hal.driver_reset = fs_reset;
-        vfs_mount("/stream", &fs, (vfs_st_mode_t){ .directory = true, .hidden = true });
+        vfs_mount(NULL, "/stream", &fs, (vfs_st_mode_t){ .directory = true, .hidden = true });
     }
 }
