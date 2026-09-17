@@ -92,7 +92,7 @@ typedef struct {
     uint8_t options[312]; // optional parameters, variable, starts with magic
 } dhcp_msg_t;
 
-static int dhcp_socket_new_dgram(struct udp_pcb **udp, void *cb_data, udp_recv_fn cb_udp_recv) {
+FLASHMEM static int dhcp_socket_new_dgram(struct udp_pcb **udp, void *cb_data, udp_recv_fn cb_udp_recv) {
     // family is AF_INET
     // type is SOCK_DGRAM
 
@@ -107,21 +107,21 @@ static int dhcp_socket_new_dgram(struct udp_pcb **udp, void *cb_data, udp_recv_f
     return 0; // success
 }
 
-static void dhcp_socket_free(struct udp_pcb **udp) {
+FLASHMEM static void dhcp_socket_free(struct udp_pcb **udp) {
     if (*udp != NULL) {
         udp_remove(*udp);
         *udp = NULL;
     }
 }
 
-static int dhcp_socket_bind(struct udp_pcb **udp, uint32_t ip, uint16_t port) {
+FLASHMEM static int dhcp_socket_bind(struct udp_pcb **udp, uint32_t ip, uint16_t port) {
     ip_addr_t addr;
     IP4_ADDR(&addr, ip >> 24 & 0xff, ip >> 16 & 0xff, ip >> 8 & 0xff, ip & 0xff);
     // TODO convert lwIP errors to errno
     return udp_bind(*udp, &addr, port);
 }
 
-static int dhcp_socket_sendto(struct udp_pcb **udp, const void *buf, size_t len, uint32_t ip, uint16_t port) {
+FLASHMEM static int dhcp_socket_sendto(struct udp_pcb **udp, const void *buf, size_t len, uint32_t ip, uint16_t port) {
     if (len > 0xffff) {
         len = 0xffff;
     }
@@ -146,7 +146,7 @@ static int dhcp_socket_sendto(struct udp_pcb **udp, const void *buf, size_t len,
     return len;
 }
 
-static uint8_t *opt_find(uint8_t *opt, uint8_t cmd) {
+FLASHMEM static uint8_t *opt_find(uint8_t *opt, uint8_t cmd) {
     for (int i = 0; i < 308 && opt[i] != DHCP_OPT_END;) {
         if (opt[i] == cmd) {
             return &opt[i];
@@ -156,7 +156,7 @@ static uint8_t *opt_find(uint8_t *opt, uint8_t cmd) {
     return NULL;
 }
 
-static void opt_write_n(uint8_t **opt, uint8_t cmd, size_t n, void *data) {
+FLASHMEM static void opt_write_n(uint8_t **opt, uint8_t cmd, size_t n, void *data) {
     uint8_t *o = *opt;
     *o++ = cmd;
     *o++ = n;
@@ -164,7 +164,7 @@ static void opt_write_n(uint8_t **opt, uint8_t cmd, size_t n, void *data) {
     *opt = o + n;
 }
 
-static void opt_write_u8(uint8_t **opt, uint8_t cmd, uint8_t val) {
+FLASHMEM static void opt_write_u8(uint8_t **opt, uint8_t cmd, uint8_t val) {
     uint8_t *o = *opt;
     *o++ = cmd;
     *o++ = 1;
@@ -172,7 +172,7 @@ static void opt_write_u8(uint8_t **opt, uint8_t cmd, uint8_t val) {
     *opt = o;
 }
 
-static void opt_write_u32(uint8_t **opt, uint8_t cmd, uint32_t val) {
+FLASHMEM static void opt_write_u32(uint8_t **opt, uint8_t cmd, uint32_t val) {
     uint8_t *o = *opt;
     *o++ = cmd;
     *o++ = 4;
@@ -183,7 +183,7 @@ static void opt_write_u32(uint8_t **opt, uint8_t cmd, uint32_t val) {
     *opt = o;
 }
 
-static void dhcp_server_process(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *src_addr, u16_t src_port) {
+FLASHMEM static void dhcp_server_process(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *src_addr, u16_t src_port) {
     dhcp_server_t *d = arg;
     (void)upcb;
     (void)src_addr;
@@ -290,7 +290,7 @@ ignore_request:
     pbuf_free(p);
 }
 
-bool dhcp_server_init(dhcp_server_t *d, ip_addr_t *ip, ip_addr_t *nm) {
+FLASHMEM bool dhcp_server_init(dhcp_server_t *d, ip_addr_t *ip, ip_addr_t *nm) {
     ip_addr_copy(d->ip, *ip);
     ip_addr_copy(d->nm, *nm);
     memset(d->lease, 0, sizeof(d->lease));
@@ -300,7 +300,7 @@ bool dhcp_server_init(dhcp_server_t *d, ip_addr_t *ip, ip_addr_t *nm) {
     return d->udp != NULL;
 }
 
-void dhcp_server_deinit(dhcp_server_t *d) {
+FLASHMEM void dhcp_server_deinit(dhcp_server_t *d) {
     dhcp_socket_free(&d->udp);
 }
 

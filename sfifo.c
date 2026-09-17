@@ -56,7 +56,7 @@
 /*
  * Alloc buffer, init FIFO etc...
  */
-int sfifo_init(sfifo_t *f, int size)
+FLASHMEM int sfifo_init(sfifo_t *f, int size)
 {
     memset(f, 0, sizeof(sfifo_t));
 
@@ -85,7 +85,7 @@ int sfifo_init(sfifo_t *f, int size)
 /*
  * Dealloc buffer etc...
  */
-void sfifo_close(sfifo_t *f)
+FLASHMEM void sfifo_close(sfifo_t *f)
 {
     if(f->buffer)
         free(f->buffer);

@@ -45,7 +45,7 @@
 static struct multipartparser parser;
 static struct multipartparser_callbacks *sd_callbacks = NULL;
 
-static void do_cleanup (file_upload_t *upload)
+FLASHMEM static void do_cleanup (file_upload_t *upload)
 {
     // close and unlink open file
     if(upload->file.handle) {
@@ -68,7 +68,7 @@ static void do_cleanup (file_upload_t *upload)
     }
 }
 
-static void cleanup (void *upload)
+FLASHMEM static void cleanup (void *upload)
 {
     if(upload) {
         do_cleanup((file_upload_t *)upload);
@@ -76,17 +76,17 @@ static void cleanup (void *upload)
     }
 }
 
-static int on_body_begin (struct multipartparser *parser)
+FLASHMEM static int on_body_begin (struct multipartparser *parser)
 {
     return 0;
 }
 
-static int on_part_begin (struct multipartparser *parser)
+FLASHMEM static int on_part_begin (struct multipartparser *parser)
 {
     return 0;
 }
 
-static void on_header_done (struct multipartparser *parser)
+FLASHMEM static void on_header_done (struct multipartparser *parser)
 {
     file_upload_t *upload = (file_upload_t *)parser->data;
 
@@ -139,7 +139,7 @@ static void on_header_done (struct multipartparser *parser)
     *upload->header_value = '\0';
 }
 
-static int on_header_field (struct multipartparser *parser, const char* data, size_t size)
+FLASHMEM static int on_header_field (struct multipartparser *parser, const char* data, size_t size)
 {
     if (*((file_upload_t *)parser->data)->header_value)
         on_header_done(parser);
@@ -148,14 +148,14 @@ static int on_header_field (struct multipartparser *parser, const char* data, si
     return 0;
 }
 
-static int on_header_value (struct multipartparser *parser, const char* data, size_t size)
+FLASHMEM static int on_header_value (struct multipartparser *parser, const char* data, size_t size)
 {
     strncat(((file_upload_t *)parser->data)->header_value, data, size);
 
     return 0;
 }
 
-static int on_headers_complete (struct multipartparser *parser)
+FLASHMEM static int on_headers_complete (struct multipartparser *parser)
 {
     if (*((file_upload_t *)parser->data)->header_value)
         on_header_done(parser);
@@ -163,7 +163,7 @@ static int on_headers_complete (struct multipartparser *parser)
     return 0;
 }
 
-static int on_data (struct multipartparser *parser, const char* data, size_t size)
+FLASHMEM static int on_data (struct multipartparser *parser, const char* data, size_t size)
 {
     file_upload_t *upload = (file_upload_t *)parser->data;
 
@@ -201,7 +201,7 @@ static int on_data (struct multipartparser *parser, const char* data, size_t siz
     return 0;
 }
 
-static int on_part_end (struct multipartparser *parser)
+FLASHMEM static int on_part_end (struct multipartparser *parser)
 {
     file_upload_t *upload = (file_upload_t *)parser->data;
 
@@ -237,20 +237,20 @@ static int on_part_end (struct multipartparser *parser)
     return 0;
 }
 
-static int on_body_end (struct multipartparser *parser)
+FLASHMEM static int on_body_end (struct multipartparser *parser)
 {
     ((file_upload_t *)parser->data)->state = Upload_Complete;
 
     return 0;
 }
 
-void http_upload_on_filename_parsed (file_upload_t *upload, http_upload_filename_parsed_ptr fn, void *data)
+FLASHMEM void http_upload_on_filename_parsed (file_upload_t *upload, http_upload_filename_parsed_ptr fn, void *data)
 {
     upload->on_filename_parsed = fn;
     upload->on_filename_parsed_arg = data;
 }
 
-file_upload_t *http_upload_start (http_request_t *request, const char* boundary, bool to_fatfs)
+FLASHMEM file_upload_t *http_upload_start (http_request_t *request, const char* boundary, bool to_fatfs)
 {
 
 #ifndef STDIO_FS
@@ -286,7 +286,7 @@ file_upload_t *http_upload_start (http_request_t *request, const char* boundary,
     return parser.data;
 }
 
-size_t http_upload_chunk (http_request_t *req, const char* data, size_t size)
+FLASHMEM size_t http_upload_chunk (http_request_t *req, const char* data, size_t size)
 {
     return multipartparser_execute(&parser, sd_callbacks, data, size);
 }

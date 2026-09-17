@@ -120,24 +120,24 @@ static inline uint16_t streamRxCount (void)
     return BUFCOUNT(head, tail, RX_BUFFER_SIZE);
 }
 
-static uint16_t streamRxFree (void)
+FLASHMEM static uint16_t streamRxFree (void)
 {
     return (RX_BUFFER_SIZE - 1) - streamRxCount();
 }
 
-static void streamRxFlush (void)
+FLASHMEM static void streamRxFlush (void)
 {
     streamSession.rxbuf.tail = streamSession.rxbuf.head;
 }
 
-static void streamRxCancel (void)
+FLASHMEM static void streamRxCancel (void)
 {
     streamSession.rxbuf.data[streamSession.rxbuf.head] = ASCII_CAN;
     streamSession.rxbuf.tail = streamSession.rxbuf.head;
     streamSession.rxbuf.head = BUFNEXT(streamSession.rxbuf.head, streamSession.rxbuf);
 }
 
-static bool streamSuspendInput (bool suspend)
+FLASHMEM static bool streamSuspendInput (bool suspend)
 {
     return stream_rx_suspend(&streamSession.rxbuf, suspend);
 }
@@ -196,7 +196,7 @@ static void streamWrite (const uint8_t *data, uint16_t length)
         streamPutC(*ptr++);
 }
 
-static uint16_t streamTxCount (void) {
+FLASHMEM static uint16_t streamTxCount (void) {
 
     uint_fast16_t head = streamSession.txbuf.head, tail = streamSession.txbuf.tail;
 
@@ -216,17 +216,17 @@ static int16_t streamTxGetC (void)
     return data;
 }
 
-static void streamTxFlush (void)
+FLASHMEM static void streamTxFlush (void)
 {
     streamSession.txbuf.tail = streamSession.txbuf.head;
 }
 
-static bool streamEnqueueRtCommand (uint8_t c)
+FLASHMEM static bool streamEnqueueRtCommand (uint8_t c)
 {
     return enqueue_realtime_command(c);
 }
 
-static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command_ptr handler)
+FLASHMEM static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command_ptr handler)
 {
     enqueue_realtime_command_ptr prev = enqueue_realtime_command;
 
@@ -236,7 +236,7 @@ static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command
     return prev;
 }
 
-static void streamClose (sessiondata_t *session)
+FLASHMEM static void streamClose (sessiondata_t *session)
 {
     streamRxFlush();
     streamTxFlush();
@@ -252,7 +252,7 @@ static void streamClose (sessiondata_t *session)
 // TCP handlers
 //
 
-static void telnet_state_free (sessiondata_t *session)
+FLASHMEM static void telnet_state_free (sessiondata_t *session)
 {
     SYS_ARCH_DECL_PROTECT(lev);
     SYS_ARCH_PROTECT(lev);
@@ -265,7 +265,7 @@ static void telnet_state_free (sessiondata_t *session)
     SYS_ARCH_UNPROTECT(lev);
 }
 
-static void telnet_err (void *arg, err_t err)
+FLASHMEM static void telnet_err (void *arg, err_t err)
 {
     sessiondata_t *session = arg;
 
@@ -282,7 +282,7 @@ static void telnet_err (void *arg, err_t err)
     streamClose(session);
 }
 
-static err_t telnet_poll (void *arg, struct tcp_pcb *pcb)
+FLASHMEM static err_t telnet_poll (void *arg, struct tcp_pcb *pcb)
 {
     sessiondata_t *session = arg;
 
@@ -297,7 +297,7 @@ static err_t telnet_poll (void *arg, struct tcp_pcb *pcb)
     return ERR_OK;
 }
 
-static void telnet_close_conn (sessiondata_t *session, struct tcp_pcb *pcb)
+FLASHMEM static void telnet_close_conn (sessiondata_t *session, struct tcp_pcb *pcb)
 {
     telnet_state_free(session);
 
@@ -319,7 +319,7 @@ static void telnet_close_conn (sessiondata_t *session, struct tcp_pcb *pcb)
 //
 // Queue incoming packet for processing
 //
-static err_t telnet_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
+FLASHMEM static err_t telnet_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
     sessiondata_t *session = arg;
 
@@ -371,7 +371,7 @@ static err_t telnet_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t 
     return ERR_OK;
 }
 
-static err_t telnet_sent (void *arg, struct tcp_pcb *pcb, u16_t ui16len)
+FLASHMEM static err_t telnet_sent (void *arg, struct tcp_pcb *pcb, u16_t ui16len)
 {
     sessiondata_t *session = arg;
 
@@ -382,7 +382,7 @@ static err_t telnet_sent (void *arg, struct tcp_pcb *pcb, u16_t ui16len)
     return ERR_OK;
 }
 
-static err_t telnet_accept (void *arg, struct tcp_pcb *pcb, err_t err)
+FLASHMEM static err_t telnet_accept (void *arg, struct tcp_pcb *pcb, err_t err)
 {
     PROGMEM static const io_stream_t telnet_stream = {
         .type = StreamType_Telnet,
@@ -447,7 +447,7 @@ static err_t telnet_accept (void *arg, struct tcp_pcb *pcb, err_t err)
     return ERR_OK;
 }
 
-void telnet_stream_handler (sessiondata_t *session)
+FLASHMEM void telnet_stream_handler (sessiondata_t *session)
 {
     static uint_fast16_t tx_len = 0;
     static uint8_t txbuf[TX_BUFFER_SIZE];
@@ -537,17 +537,17 @@ void telnet_stream_handler (sessiondata_t *session)
     }
 }
 
-void telnetd_poll (void)
+FLASHMEM void telnetd_poll (void)
 {
     telnet_stream_handler(&streamSession);
 }
 
-void telnetd_close_connections (void)
+FLASHMEM void telnetd_close_connections (void)
 {
     streamClose(&streamSession);
 }
 
-void telnetd_stop (void)
+FLASHMEM void telnetd_stop (void)
 {
     if(telnet_server.pcb != NULL) {
 
@@ -573,7 +573,7 @@ void telnetd_stop (void)
     }
 }
 
-static void onNetworkEvent (const char *interface, network_status_t status)
+FLASHMEM static void onNetworkEvent (const char *interface, network_status_t status)
 {
     if((telnet_server.link_lost = !status.flags.link_up) && streamSession.pcb)
         telnet_close_conn(&streamSession, streamSession.pcb);
@@ -581,7 +581,7 @@ static void onNetworkEvent (const char *interface, network_status_t status)
     on_network_event(interface, status);
 }
 
-bool telnetd_init (uint16_t port)
+FLASHMEM bool telnetd_init (uint16_t port)
 {
     err_t err = ERR_VAL;
 

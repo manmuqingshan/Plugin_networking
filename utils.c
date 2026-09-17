@@ -13,12 +13,12 @@
 
 #include "utils.h"
 
-bool is_valid_port (uint16_t port)
+FLASHMEM bool is_valid_port (uint16_t port)
 {
     return port > 0;
 }
 
-bool is_valid_hostname (const char *hostname)
+FLASHMEM bool is_valid_hostname (const char *hostname)
 {
     bool ok = true;
     char *s = (char *)hostname;
@@ -35,7 +35,7 @@ bool is_valid_hostname (const char *hostname)
     return ok && len >= HOSTNAME_LENGTH_MIN && len <= HOSTNAME_LENGTH_MAX;
 }
 
-bool is_valid_ssid (const char *ssid)
+FLASHMEM bool is_valid_ssid (const char *ssid)
 {
     bool ok = true;
     char *s = (char *)ssid;
@@ -52,7 +52,7 @@ bool is_valid_ssid (const char *ssid)
     return ok && len >= SSID_LENGTH_MIN && len <= SSID_LENGTH_MAX;
 }
 
-bool is_valid_password (const char *password)
+FLASHMEM bool is_valid_password (const char *password)
 {
     size_t len = strlen(password);
 

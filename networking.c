@@ -102,7 +102,7 @@ static on_stream_changed_ptr on_stream_changed;
 
 static void network_event (const char *interface, network_status_t status);
 
-static network_info_t *get_info (const char *interface)
+FLASHMEM static network_info_t *get_info (const char *interface)
 {
     return NULL;
 }
@@ -112,7 +112,7 @@ networking_t networking = {
     .get_info = get_info
 };
 
-static void network_event (const char *interface, network_status_t status)
+FLASHMEM static void network_event (const char *interface, network_status_t status)
 {
     net_if_t *intf = &net_if;
 
@@ -163,7 +163,7 @@ static void network_event (const char *interface, network_status_t status)
     intf->status.value = status.flags.value;
 }
 
-bool networking_enumerate_interfaces (networking_enumerate_interfaces_callback_ptr callback, void *data)
+FLASHMEM bool networking_enumerate_interfaces (networking_enumerate_interfaces_callback_ptr callback, void *data)
 {
     bool ok = false;
     net_if_t *intf = &net_if;
@@ -177,7 +177,7 @@ bool networking_enumerate_interfaces (networking_enumerate_interfaces_callback_p
     return ok;
 }
 
-static inline bool add_port (char *buf, uint16_t port, bool add_sep)
+FLASHMEM static inline bool add_port (char *buf, uint16_t port, bool add_sep)
 {
     if(add_sep)
         strcat(buf, ",");
@@ -187,7 +187,7 @@ static inline bool add_port (char *buf, uint16_t port, bool add_sep)
     return true;
 }
 
-static bool if_enumerate (network_info_t *info, network_flags_t flags, void *data)
+FLASHMEM static bool if_enumerate (network_info_t *info, network_flags_t flags, void *data)
 {
     if(flags.interface_up) {
 
@@ -215,14 +215,14 @@ static bool if_enumerate (network_info_t *info, network_flags_t flags, void *dat
     return false;
 }
 
-static status_code_t netif (sys_state_t state, char *args)
+FLASHMEM static status_code_t netif (sys_state_t state, char *args)
 {
     networking_enumerate_interfaces(if_enumerate, NULL);
 
     return Status_OK;
 }
 
-static void stream_changed (void)
+FLASHMEM static void stream_changed (void)
 {
     if(!stream_is_file())
         active_stream = hal.stream.type;
@@ -238,7 +238,7 @@ typedef struct {
     network_services_t services;
 } net_report_t;
 
-static bool report_interfaces (network_info_t *info, network_flags_t flags, void *data)
+FLASHMEM static bool report_interfaces (network_info_t *info, network_flags_t flags, void *data)
 {
     net_report_t *report = (net_report_t *)data;
 
@@ -278,7 +278,7 @@ static bool report_interfaces (network_info_t *info, network_flags_t flags, void
     return false;
 }
 
-static void report_options (bool newopt)
+FLASHMEM static void report_options (bool newopt)
 {
     if(net_if.name) {
 
@@ -318,7 +318,7 @@ static void report_options (bool newopt)
     on_report_options(newopt);
 }
 
-void networking_init (void)
+FLASHMEM void networking_init (void)
 {
     static bool ok = false;
 
@@ -344,7 +344,7 @@ void networking_init (void)
     }
 }
 
-network_services_t networking_get_services_list (char *list)
+FLASHMEM network_services_t networking_get_services_list (char *list)
 {
     uint_fast8_t idx = 0;
     network_services_t services = {allowed_services.mask};
@@ -361,7 +361,7 @@ network_services_t networking_get_services_list (char *list)
     return *list != '\0' ? allowed_services : (network_services_t){0};
 }
 
-bool networking_ismemnull (void *data, size_t len)
+FLASHMEM bool networking_ismemnull (void *data, size_t len)
 {
     uint8_t *p = data;
 
@@ -373,7 +373,7 @@ bool networking_ismemnull (void *data, size_t len)
     return true;
 }
 
-char *networking_mac_to_string (uint8_t mac[6])
+FLASHMEM char *networking_mac_to_string (uint8_t mac[6])
 {
     static char s[18];
 
@@ -385,7 +385,7 @@ char *networking_mac_to_string (uint8_t mac[6])
     return s;
 }
 
-bool networking_string_to_mac (char *s, uint8_t mac[6])
+FLASHMEM bool networking_string_to_mac (char *s, uint8_t mac[6])
 {
     if(*s) {
 
@@ -427,7 +427,7 @@ __attribute__((weak)) bool bmac_wifi_get (uint8_t mac[6])
 #if MQTT_ENABLE
 
 // Create MQTT client id from last three values of MAC address
-void networking_make_mqtt_clientid (const char *mac, char *client_id)
+FLASHMEM void networking_make_mqtt_clientid (const char *mac, char *client_id)
 {
     if(*mac) {
 

@@ -269,19 +269,19 @@ static int32_t streamGetC (void)
     return data;
 }
 
-static inline uint16_t streamRxCount (void)
+FLASHMEM static inline uint16_t streamRxCount (void)
 {
     uint_fast16_t head = streambuffers.rxbuf.head, tail = streambuffers.rxbuf.tail;
 
     return BUFCOUNT(head, tail, RX_BUFFER_SIZE);
 }
 
-static uint16_t streamRxFree (void)
+FLASHMEM static uint16_t streamRxFree (void)
 {
     return (RX_BUFFER_SIZE - 1) - streamRxCount();
 }
 
-static void streamRxFlush (void)
+FLASHMEM static void streamRxFlush (void)
 {
     if(xSemaphoreTake(rx_mux, portMAX_DELAY) == pdTRUE) {
         streambuffers.rxbuf.tail = streambuffers.rxbuf.head;
@@ -289,7 +289,7 @@ static void streamRxFlush (void)
     }
 }
 
-static void websocketd_RxCancel (void)
+FLASHMEM static void websocketd_RxCancel (void)
 {
     if(xSemaphoreTake(rx_mux, portMAX_DELAY) == pdTRUE) {
         streambuffers.rxbuf.data[streambuffers.rxbuf.head] = ASCII_CAN;
@@ -299,7 +299,7 @@ static void websocketd_RxCancel (void)
     }
 }
 
-static bool streamSuspendInput (bool suspend)
+FLASHMEM static bool streamSuspendInput (bool suspend)
 {
     return stream_rx_suspend(&streambuffers.rxbuf, suspend);
 }
@@ -357,7 +357,7 @@ static void streamWrite (const uint8_t *data, uint16_t length)
         streamPutC(*ptr++);
 }
 
-static uint16_t streamTxCount (void) {
+FLASHMEM static uint16_t streamTxCount (void) {
 
     uint_fast16_t head = streambuffers.txbuf.head, tail = streambuffers.txbuf.tail;
 
@@ -377,17 +377,17 @@ static int16_t streamTxGetC (void)
     return data;
 }
 
-static void streamTxFlush (void)
+FLASHMEM static void streamTxFlush (void)
 {
     streambuffers.txbuf.tail = streambuffers.txbuf.head;
 }
 
-static bool streamEnqueueRtCommand (uint8_t c)
+FLASHMEM static bool streamEnqueueRtCommand (uint8_t c)
 {
     return enqueue_realtime_command(c);
 }
 
-static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command_ptr handler)
+FLASHMEM static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command_ptr handler)
 {
     enqueue_realtime_command_ptr prev = enqueue_realtime_command;
 
@@ -397,7 +397,7 @@ static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command
     return prev;
 }
 
-static void streamClose (ws_sessiondata_t *session)
+FLASHMEM static void streamClose (ws_sessiondata_t *session)
 {
     // Switch I/O stream back to default
     if(session->stream) {
@@ -410,7 +410,7 @@ static void streamClose (ws_sessiondata_t *session)
     }
 }
 
-bool websocket_register_frame_handler (websocket_t *session, websocket_on_frame_received_ptr handler, bool binary)
+FLASHMEM bool websocket_register_frame_handler (websocket_t *session, websocket_on_frame_received_ptr handler, bool binary)
 {
     bool ok;
 
@@ -424,12 +424,12 @@ bool websocket_register_frame_handler (websocket_t *session, websocket_on_frame_
     return ok;
 }
 
-static bool is_connected (void)
+FLASHMEM static bool is_connected (void)
 {
     return ws_streams[0].state.connected;
 }
 
-static const io_stream_t *claim_stream (uint32_t baud_rate)
+FLASHMEM static const io_stream_t *claim_stream (uint32_t baud_rate)
 {
     static const io_stream_t stream = {
         .type = StreamType_WebSocket,
@@ -457,7 +457,7 @@ static const io_stream_t *claim_stream (uint32_t baud_rate)
     return &stream;
 }
 
-static const io_stream_t *claim_webui_stream (uint32_t baud_rate)
+FLASHMEM static const io_stream_t *claim_webui_stream (uint32_t baud_rate)
 {
     static const io_stream_t stream = {
         .type = StreamType_WebSocket,
@@ -486,7 +486,7 @@ static const io_stream_t *claim_webui_stream (uint32_t baud_rate)
 }
 
 
-bool websocket_send_frame (websocket_t *session, const void *data, size_t size, bool is_binary)
+FLASHMEM bool websocket_send_frame (websocket_t *session, const void *data, size_t size, bool is_binary)
 {
     uint8_t *msg;
     size_t hdr_len = size >= 126 ? 4 : 2;
@@ -516,7 +516,7 @@ bool websocket_send_frame (websocket_t *session, const void *data, size_t size, 
     return msg != 0;
 }
 
-bool websocket_broadcast_frame (const void *data, size_t size, bool is_binary)
+FLASHMEM bool websocket_broadcast_frame (const void *data, size_t size, bool is_binary)
 {
     uint_fast16_t idx = WEBUI_MAX_CLIENTS;
 
@@ -528,7 +528,7 @@ bool websocket_broadcast_frame (const void *data, size_t size, bool is_binary)
     return true;
 }
 
-bool websocket_set_stream_flags (websocket_t *session, io_stream_state_t stream_state)
+FLASHMEM bool websocket_set_stream_flags (websocket_t *session, io_stream_state_t stream_state)
 {
     if(session == NULL || ((ws_sessiondata_t *)session)->magic != WEBSOCKETD_MAGIC)
         return false;
@@ -543,7 +543,7 @@ bool websocket_set_stream_flags (websocket_t *session, io_stream_state_t stream_
 // TCP handlers
 //
 
-static void websocket_state_free (ws_sessiondata_t *session)
+FLASHMEM static void websocket_state_free (ws_sessiondata_t *session)
 {
     session->magic = 0; // Invalidate session
 
@@ -572,7 +572,7 @@ static void websocket_state_free (ws_sessiondata_t *session)
     }
 }
 
-static void websocket_unlink_session (ws_sessiondata_t *session)
+FLASHMEM static void websocket_unlink_session (ws_sessiondata_t *session)
 {
     session->magic = 0;             // Invalidate session
     session->state = WsState_Free;
@@ -585,7 +585,7 @@ static void websocket_unlink_session (ws_sessiondata_t *session)
         websocket.on_client_disconnect(session);
 }
 
-static void websocket_err (void *arg, err_t err)
+FLASHMEM static void websocket_err (void *arg, err_t err)
 {
     ws_sessiondata_t *session = arg;
 
@@ -593,7 +593,7 @@ static void websocket_err (void *arg, err_t err)
     websocket_unlink_session(session);
 }
 
-static err_t websocket_poll (void *arg, struct tcp_pcb *pcb)
+FLASHMEM static err_t websocket_poll (void *arg, struct tcp_pcb *pcb)
 {
     ws_sessiondata_t *session = arg;
 
@@ -608,7 +608,7 @@ static err_t websocket_poll (void *arg, struct tcp_pcb *pcb)
     return ERR_OK;
 }
 
-static void websocket_close_conn (ws_sessiondata_t *session, struct tcp_pcb *pcb)
+FLASHMEM static void websocket_close_conn (ws_sessiondata_t *session, struct tcp_pcb *pcb)
 {
     session->pcb = NULL;
     websocket_unlink_session(session);
@@ -627,7 +627,7 @@ static void websocket_close_conn (ws_sessiondata_t *session, struct tcp_pcb *pcb
 // Process data for streaming
 //
 
-static bool collect_msg_frame (frame_header_t *header, uint8_t *payload, uint32_t len)
+FLASHMEM static bool collect_msg_frame (frame_header_t *header, uint8_t *payload, uint32_t len)
 {
     if(header->payload_rem > len && header->payload_rem == header->payload_len) {
         if((header->frame = malloc(header->payload_len + header->idx)))
@@ -642,7 +642,7 @@ static bool collect_msg_frame (frame_header_t *header, uint8_t *payload, uint32_
     return header->frame != NULL;
 }
 
-static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t *payload, uint32_t len)
+FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t *payload, uint32_t len)
 {
     bool frame_done = false;
     uint32_t plen = len;
@@ -873,7 +873,7 @@ static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t *payload
 //
 // Queue incoming packet for processing
 //
-static err_t websocket_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
+FLASHMEM static err_t websocket_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
     ws_sessiondata_t *session = arg;
 
@@ -940,7 +940,7 @@ static err_t websocket_sent (void *arg, struct tcp_pcb *pcb, u16_t ui16len)
  * @param apiflags directly passed to tcp_write
  * @return the return value of tcp_write
  */
-static err_t http_write (struct tcp_pcb *pcb, const void *ptr, u16_t *length, u8_t apiflags)
+FLASHMEM static err_t http_write (struct tcp_pcb *pcb, const void *ptr, u16_t *length, u8_t apiflags)
 {
     u16_t len;
     err_t err;
@@ -967,14 +967,14 @@ static err_t http_write (struct tcp_pcb *pcb, const void *ptr, u16_t *length, u8
     return err;
 }
 
-static void http_write_error (ws_sessiondata_t *session, const char *status)
+FLASHMEM static void http_write_error (ws_sessiondata_t *session, const char *status)
 {
     uint16_t len = strlen(status);
     http_write(session->pcb, status, &len, TCP_WRITE_FLAG_COPY);
     session->state = WsState_Closing;
 }
 
-bool websocket_claim_stream (websocket_t *websocket)
+FLASHMEM bool websocket_claim_stream (websocket_t *websocket)
 {
     const io_stream_t *stream;
     ws_sessiondata_t *session = (ws_sessiondata_t *)websocket;
@@ -1003,7 +1003,7 @@ bool websocket_claim_stream (websocket_t *websocket)
 //
 // Process connection handshake
 //
-static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
+FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
     static uint32_t ptr = 0;
 
@@ -1214,7 +1214,7 @@ static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t er
     return ERR_OK;
 }
 
-static err_t websocketd_accept (void *arg, struct tcp_pcb *pcb, err_t err)
+FLASHMEM static err_t websocketd_accept (void *arg, struct tcp_pcb *pcb, err_t err)
 {
     ws_sessiondata_t *session = NULL;
 
@@ -1265,7 +1265,7 @@ static err_t websocketd_accept (void *arg, struct tcp_pcb *pcb, err_t err)
     return ERR_OK;
 }
 
-static void websocket_ping (ws_sessiondata_t *session)
+FLASHMEM static void websocket_ping (ws_sessiondata_t *session)
 {
     uint8_t txbuf[5];
 
@@ -1286,7 +1286,7 @@ static void websocket_ping (ws_sessiondata_t *session)
     }
 }
 
-static void websocket_stream_handler (ws_sessiondata_t *session)
+FLASHMEM static void websocket_stream_handler (ws_sessiondata_t *session)
 {
     static uint8_t txbuf[TX_BUFFER_SIZE + 4];
 
@@ -1381,7 +1381,7 @@ static void websocket_stream_handler (ws_sessiondata_t *session)
 //
 // Process data for streaming
 //
-void websocketd_poll (void)
+FLASHMEM void websocketd_poll (void)
 {
     ws_sessiondata_t *client;
     uint_fast16_t idx = WEBUI_MAX_CLIENTS;
@@ -1397,7 +1397,7 @@ void websocketd_poll (void)
     } while(idx);
 }
 
-void websocketd_close_connections (void)
+FLASHMEM void websocketd_close_connections (void)
 {
     uint_fast16_t idx = WEBUI_MAX_CLIENTS;
 
@@ -1407,7 +1407,7 @@ void websocketd_close_connections (void)
     } while(idx);
 }
 
-void websocketd_stop (void)
+FLASHMEM void websocketd_stop (void)
 {
     ws_sessiondata_t *client;
     uint_fast16_t idx = WEBUI_MAX_CLIENTS;
@@ -1435,7 +1435,7 @@ void websocketd_stop (void)
         tcp_close(ws_server.pcb);
 }
 
-static void onNetworkEvent (const char *interface, network_status_t status)
+FLASHMEM static void onNetworkEvent (const char *interface, network_status_t status)
 {
     if((ws_server.link_lost = !status.flags.link_up))
         websocketd_close_connections();
@@ -1443,7 +1443,7 @@ static void onNetworkEvent (const char *interface, network_status_t status)
     on_network_event(interface, status);
 }
 
-bool websocketd_init (uint16_t port)
+FLASHMEM bool websocketd_init (uint16_t port)
 {
     static io_stream_details_t streams = {
         .n_streams = 1, //sizeof(ws_streams) / sizeof(ws_stream_properties_t),
